@@ -21,6 +21,7 @@ Exported files (glTF 2.0 binary, PBR metallic-roughness, vertex colours as COLOR
   galaxy_2024.glb / galaxy_2025.glb / galaxy_2026.glb   particle galaxies
   starfield.glb             distant star shell
   nebula_veils.glb          layered translucent nebula sprites (hybrid background)
+  orbit_ring.glb            unit orbital path ring (instanced per planet orbit)
 
 Named child nodes (Clouds, Ring, Particles, Shell, Lattice, Stars, ...) are animated
 independently at runtime by the Flutter scene controller.
@@ -1010,6 +1011,24 @@ def build_veils():
     export("nebula_veils")
 
 
+def build_orbit_ring():
+    """Unit-radius orbital path; scaled per planet orbit at runtime."""
+    reset()
+    root = empty("OrbitRing")
+    bm = bmesh.new()
+    segs = 192
+    for i in range(segs):
+        a0 = 2 * math.pi * i / segs
+        a1 = 2 * math.pi * (i + 1) / segs
+        add_tube(bm, Vector((math.cos(a0), math.sin(a0), 0)), Vector((math.cos(a1), math.sin(a1), 0)),
+                 0.0022, 0.0022, segs=4, caps=False)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
+    m = material("OrbitMat", vcol=False, color=hexc("#EEEDE5"), emission=hexc("#E5C5AE"), strength=1.2,
+                 alpha=0.45, rough=0.5)
+    obj_from_bm("Path", bm, m, root)
+    export("orbit_ring")
+
+
 BUILDERS = {
     "planet_bloom": lambda: build_bloom(False),
     "planet_bloom_evolved": lambda: build_bloom(True),
@@ -1027,6 +1046,7 @@ BUILDERS = {
                                         hexc("#F8E1E1"), "veil_rose.png", shape="ring"),
     "starfield": build_starfield,
     "nebula_veils": build_veils,
+    "orbit_ring": build_orbit_ring,
 }
 
 if __name__ == "__main__":
