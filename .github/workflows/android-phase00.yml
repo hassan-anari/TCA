@@ -4,10 +4,11 @@ name: Android Phase 00 prototype
 # and smoke-tests it on an x86_64 Android emulator (screenshots, recording,
 # frame statistics, integration tests). Nothing is deployed or published.
 
+# Push-triggered only (plus manual dispatch) so each commit on the prototype
+# branch builds exactly once; the Draft PR shows these runs as its checks.
 on:
   push:
     branches: [prototype/phase-00-visual]
-  pull_request:
   workflow_dispatch:
 
 concurrency:
