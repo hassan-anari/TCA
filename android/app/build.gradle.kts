@@ -38,6 +38,27 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // `--target-platform` only filters Flutter's own engine/AOT libraries;
+        // plugin JNI libraries (jni, datastore, thermion_flutter) would still
+        // ship for every ABI. Restrict packaged native libs to the requested
+        // ABIs so the arm64 deliverable is arm64-only (and the emulator's
+        // x86_64 build stays x86_64-only).
+        val requestedAbis =
+            (project.findProperty("target-platform") as String?)
+                ?.split(",")
+                ?.mapNotNull {
+                    when (it.trim()) {
+                        "android-arm64" -> "arm64-v8a"
+                        "android-x64" -> "x86_64"
+                        "android-arm" -> "armeabi-v7a"
+                        else -> null
+                    }
+                }
+                .orEmpty()
+        if (requestedAbis.isNotEmpty()) {
+            ndk { abiFilters += requestedAbis }
+        }
     }
 
     signingConfigs {
